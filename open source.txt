@@ -610,15 +610,27 @@ class CryptoClient(QtWidgets.QWidget):
             self.balance_label.setText(f'Erro: {e}')
 
     def send_balance(self):
-        # Extrair informações dos campos de forma otimizada
-        sender_address = self.sender_input.text().strip()
-        private_key = self.private_key_input.text().strip()
-        recipient = self.recipient_input.text().strip()
-        amount = self.send_amount_input.text().strip()
+        # Extrair informações dos campos
+        sender_address = self.sender_input.text().strip()  # Endereço da carteira que envia
+        private_key = self.private_key_input.text().strip()  # Chave privada do remetente
+        recipient = self.recipient_input.text().strip()  # Endereço do destinatário
+        amount = self.send_amount_input.text().strip()  # Valor a ser enviado
 
-        # Validações simplificadas
-        if not sender_address or not private_key or not recipient or not amount:
-            self.balance_label.setText('Todos os campos são obrigatórios!')
+        # Validações
+        if not sender_address:
+            self.balance_label.setText('Por favor, insira o endereço da carteira que envia.')
+            return
+
+        if not private_key:
+            self.balance_label.setText('Por favor, insira a chave privada do remetente.')
+            return
+
+        if not recipient:
+            self.balance_label.setText('Por favor, insira o endereço da carteira do destinatário.')
+            return
+
+        if not amount:
+            self.balance_label.setText('Por favor, insira um valor para a transação.')
             return
 
         try:
@@ -627,76 +639,61 @@ class CryptoClient(QtWidgets.QWidget):
                 self.balance_label.setText('O valor deve ser positivo.')
                 return
         except ValueError:
-            self.balance_label.setText('Valor inválido para a transação.')
+            self.balance_label.setText('Por favor, insira um valor numérico válido.')
             return
 
-        # Preparar dados da transação
+        # Preparar os dados da transação
         transaction_data = {
             'private_key': private_key,
-            'sender': sender_address,
+            'sender': sender_address,  # Adicionado para indicar a carteira de envio
             'recipient': recipient,
             'amount': amount
         }
 
-        # Comunicação com o servidor usando uma abordagem assíncrona para não travar a interface
+        # Comunicação com o servidor
         try:
-            response = requests.post('http://127.0.0.1/transfer', json=transaction_data)
+            response = requests.post(' http://127.0.0.1/transfer', json=transaction_data)
 
-            # Resposta otimizada para clareza
             if response.status_code == 200:
-                transaction_info = response.json()
-                self.balance_label.setText(f'Transação realizada com sucesso: {transaction_info.get("message", "Sem mensagem")}')
+                transaction_info = response.json()  # Captura a resposta JSON
+                self.balance_label.setText(f'Transação realizada com sucesso! {transaction_info["message"]}')
             else:
-                self.balance_label.setText(f'Erro {response.status_code}: {response.text}')
+                self.balance_label.setText(f'Erro ao enviar transação: {response.status_code} - {response.text}')
         except requests.exceptions.RequestException as e:
             self.balance_label.setText(f'Erro ao se conectar ao servidor: {e}')
 
     def start_mining(self, miner_address):
-        # Inicia a mineração em segundo plano
         self.miner_thread.start_mining(miner_address)
         self.mining_status_label.setText('Minerando...')
 
     def stop_mining(self):
-        # Para a mineração
         self.miner_thread.stop_mining()
 
     def update_mining_status(self, block_index, previous_hash):
-        # Atualiza o status de mineração e exibe o QR Code com os dados
-        self.mining_status_label.setText(f'Minerando... Bloco {block_index} - Hash: {previous_hash}')
+        self.mining_status_label.setText(f'Minerando... Bloco: {block_index} (Hash anterior: {previous_hash})')
+        # Gera o QR Code com os detalhes do bloco
         qr_data = f"Bloco: {block_index}\nHash Anterior: {previous_hash}"
-        self.display_qr_code(qr_data)
+        self.display_qr_code(qr_data)  # Passa os dados do bloco para o QR Code
 
     def generate_qr_code(self, index, previous_hash):
-        # Gerar QR Code de forma otimizada
         qr_data = f"Bloco: {index}\nHash Anterior: {previous_hash}"
         qr_image = qrcode.make(qr_data)
         qr_bytes = BytesIO()
         qr_image.save(qr_bytes, format='PNG')
         qr_pixmap = QPixmap()
         qr_pixmap.loadFromData(qr_bytes.getvalue())
-
-        # Exibe o QR Code no widget
         self.qr_code_label.setPixmap(qr_pixmap.scaled(200, 200, QtCore.Qt.KeepAspectRatio))
 
-        # Adiciona botão de ampliar
+        # Botão para ampliar o QR Code
         self.maximize_qr_btn = QPushButton('Ampliar QR Code', self)
         self.maximize_qr_btn.clicked.connect(self.maximize_qr_code)
-        self.layout.addWidget(self.maximize_qr_btn)
+        layout.addWidget(self.maximize_qr_btn)
 
     def maximize_qr_code(self):
-        # Exibe o QR Code ampliado
-        qr_data = self.mining_status_label.text()
-        self.qr_code_window = QrCodeViewer(qr_data)
+        qr_data = self.mining_status_label.text()  # Obtém o QR Code baseado na mineração atual
+        self.qr_code_window = QrCodeViewer(qr_data)  # Passa o dado do QR Code
         self.qr_code_window.show()
 
-    def display_qr_code(self, qr_data):
-        # Método para exibir QR Code (caso precise de um código separado)
-        qr_image = qrcode.make(qr_data)
-        qr_bytes = BytesIO()
-        qr_image.save(qr_bytes, format='PNG')
-        qr_pixmap = QPixmap()
-        qr_pixmap.loadFromData(qr_bytes.getvalue())
-        self.qr_code_label.setPixmap(qr_pixmap.scaled(200, 200, QtCore.Qt.KeepAspectRatio))
 def main():
     app = QtWidgets.QApplication(sys.argv)
     client = CryptoClient()
