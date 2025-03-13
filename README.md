@@ -12,13 +12,11 @@ Pipo-Pay é uma aplicação de pagamento que oferece uma solução simples e efi
 
 
 ### Como funciona:
-- A imagem e o vídeo agora têm o link correto usando a URL `raw` do GitHub, que permite que os arquivos sejam visualizados diretamente no navegador ou por meio de link no `README.md`.
   - **Imagem**: `https://github.com/Pipo-Pay/crypito/raw/main/pipo.bmp`
   - **Vídeo**: `https://github.com/Pipo-Pay/crypito/raw/main/video.mp4`
 
-Com isso, a imagem será renderizada e o vídeo será acessado quando você fizer o push para o repositório.
 
-Se precisar de mais ajuda, só avisar!
+Pipo!
 ![LiroBoy](https://github.com/Pipo-Pay/crypito/blob/main/pipo.bmp)
 [Assistir ao Vídeo](https://github.com/Pipo-Pay/crypito/raw/main/video.mp4)
 
