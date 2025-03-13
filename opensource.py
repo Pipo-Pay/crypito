@@ -259,14 +259,11 @@ class MinerThread(QtCore.QThread):
             # Criar o código OpenCL
             program_src = """
             __kernel void mine_block(__global const char* block_data, __global char* hash_result) {
+                // Função de hashing simples como exemplo (pode ser otimizada)
                 int id = get_global_id(0);
-                if (id == 0) {
-                    // Implementar uma operação simples aqui, por exemplo, calcular um hash simples.
-                   // Um exemplo de implementação de hashing em OpenCL.
-                    hash_result[id] = block_data[id]; // Simples cópia para teste
-                }
+                hash_result[id] = block_data[id];  // Exemplo simples de cópia
             }
-
+            """
         
             program = cl.Program(context, program_src).build()
 
@@ -327,25 +324,39 @@ class MinerThread(QtCore.QThread):
     import pyopencl as cl
 
     def show_gpu_details(self, device):
-        """Exibe detalhes da GPU."""
+        """Exibe detalhes completos da GPU com informações corretas usando OpenCL."""
         try:
+            # Obter informações detalhadas sobre a GPU
             print("Detalhes da GPU:")
-            print(f"Nome: {device.name}")
-            print(f"Memória Global: {device.global_mem_size // (1024**2)} MB")
-            print(f"Memória Local: {device.local_mem_size // 1024} KB")
-            print(f"Processadores: {device.max_compute_units}")
-            print(f"Frequência: {device.max_clock_frequency} MHz")
+            print(f"Nome: {device.get_info(cl.device_info.NAME)}")
+            print(f"Memória Global: {device.get_info(cl.device_info.GLOBAL_MEM_SIZE) // (1024**2)} MB")
+            print(f"Memória Local: {device.get_info(cl.device_info.LOCAL_MEM_SIZE) // 1024} KB")
         
-            # Use um método alternativo para obter o driver
-            if hasattr(device, 'get_info'):
-                driver = device.get_info(cl.device_info.VERSION)
-                print(f"Driver: {driver}")
-            else:
-                print("Informações do driver não disponíveis.")
+            # Remover a constante de memória já que não é suportada
+            # print(f"Memória Constante: {device.get_info(cl.device_info.CONSTANT_MEM_SIZE) // (1024**2)} MB")
+        
+            print(f"Número de Unidades de Computação: {device.get_info(cl.device_info.MAX_COMPUTE_UNITS)}")
+            print(f"Frequência Máxima (MHz): {device.get_info(cl.device_info.MAX_CLOCK_FREQUENCY)} MHz")
+            print(f"Versão do OpenCL: {device.get_info(cl.device_info.VERSION)}")
+            print(f"Tipo de dispositivo: {device.get_info(cl.device_info.TYPE)}")
+            print(f"Driver: {device.get_info(cl.device_info.DRIVER_VERSION)}")
 
+            # Exibir outros detalhes que podem ser úteis
+            print(f"Tamanho Máximo de Work Group: {device.get_info(cl.device_info.MAX_WORK_GROUP_SIZE)}")
+            print(f"Tamanho Máximo de Work Item: {device.get_info(cl.device_info.MAX_WORK_ITEM_SIZE)}")
+            print(f"Tamanho Máximo de Memória de Work Group: {device.get_info(cl.device_info.MAX_MEM_ALLOC_SIZE) // (1024**2)} MB")
+    
         except Exception as e:
             print(f"Erro ao obter detalhes da GPU: {e}")
 
+    def show_cpu_details(self):
+        """Exibe detalhes da CPU usando psutil."""
+        print("Detalhes da CPU:")
+        print(f"Número de núcleos: {psutil.cpu_count(logical=False)}")
+        print(f"Número de threads: {psutil.cpu_count(logical=True)}")
+        print(f"Frequência Atual: {psutil.cpu_freq().current} MHz")
+        print(f"Uso Total da CPU: {psutil.cpu_percent()}%")
+        print(f"Uso por Núcleo: {psutil.cpu_percent(percpu=True)}")
 
     
 class QrCodeViewer(QtWidgets.QWidget):
@@ -556,7 +567,7 @@ class CryptoClient(QtWidgets.QWidget):
             self.balance_label.setText(f'Erro: {e}')
 
     def display_error(self, message):
-        "Exibe uma mensagem de erro."
+        """Exibe uma mensagem de erro."""
         QtWidgets.QMessageBox.critical(self, 'Erro', message)
 
     def show_local_api_options(self):
