@@ -1,0 +1,2 @@
+"pipo-p2p.exe -filter=lfs" 
+pipo-p2p.exe !text !filter !merge !diff
